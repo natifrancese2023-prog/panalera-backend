@@ -5,7 +5,7 @@ const verificarToken = require('../middlewares/auth');
 const verificarRol = require('../middlewares/roles');
 
 // Cliente: crear pedido y ver sus pedidos
-router.post('/', verificarToken, verificarRol(['cliente']), pedidosController.crearPedido);
+router.post('/', verificarToken, verificarRol(['cliente', 'dueño']), pedidosController.crearPedido);
 router.get('/mis-pedidos', verificarToken, verificarRol(['cliente']), pedidosController.listarPedidosCliente);
 
 // Dueño: ver todos los pedidos y cambiar estado

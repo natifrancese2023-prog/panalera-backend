@@ -56,10 +56,17 @@ exports.actualizarProducto = async (req, res, next) => {
 exports.eliminarProducto = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await productosModel.eliminar(id);
-    res.json({ mensaje: 'Producto eliminado correctamente' });
+    const eliminado = await productosModel.eliminar(id);
+
+    if (!eliminado) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    res.json({ mensaje: "Producto eliminado correctamente", producto: eliminado });
   } catch (err) {
     next(err);
   }
 };
+
+
 

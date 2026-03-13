@@ -53,7 +53,3 @@ exports.actualizarEstado = async (idPedido, estado) => {
   );
   return result.rows[0];
 };
-exports.obtenerPorId = async (id) => {
-  const result = await pool.query('SELECT * FROM producto WHERE id_producto=$1', [id]);
-  return result.rows[0];
-};
