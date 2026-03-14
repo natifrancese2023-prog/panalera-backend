@@ -1,0 +1,22 @@
+{
+  "name": "panalera-backend",
+  "version": "1.0.0",
+  "description": "Proyecto académico/práctico de backend para la gestión de una pañalera.  \r Incluye autenticación con JWT, control de roles (cliente/dueño), validaciones de stock y cantidad, y documentación QA con casos de prueba y evidencias.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/natifrancese2023-prog/panalera-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/natifrancese2023-prog/panalera-backend/issues"
+  },
+  "homepage": "https://github.com/natifrancese2023-prog/panalera-backend#readme"
+
+}
