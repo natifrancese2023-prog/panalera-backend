@@ -26,7 +26,13 @@ app.use('/pedidos', pedidosRoutes);
 
 app.use(require('./middlewares/errorHandler'));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
-});
+// 👇 Exportá la app para Supertest
+module.exports = app;
+
+// Solo levantá el servidor si ejecutás directamente este archivo
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  });
+}

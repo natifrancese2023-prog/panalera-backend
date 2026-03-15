@@ -14,10 +14,12 @@ const validarProducto = [
   body('precio_venta').isFloat({ min: 0 }).withMessage('El precio de venta debe ser positivo'),
   body('id_categoria').isInt({ min: 1 }).withMessage('Debe indicar una categoría válida')
 ];
-
-router.get('/', verificarToken, verificarRol(['dueño', 'empleado']), productosController.listarProductos);
+router.get('/catalogo', productosController.listarCatalogo);
+router.get('/', verificarToken, verificarRol(['dueño']), productosController.listarProductos);
 router.post('/', verificarToken, verificarRol(['dueño']), validarProducto, productosController.crearProducto);
 router.put('/:id', verificarToken, verificarRol(['dueño']), validarProducto, productosController.actualizarProducto);
 router.delete('/:id', verificarToken, verificarRol(['dueño']), productosController.eliminarProducto);
+
+
 
 module.exports = router;

@@ -66,7 +66,30 @@ exports.eliminarProducto = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+  
 };
+
+exports.listarCatalogo = async (req, res, next) => {
+  try {
+    const productos = await productosModel.obtenerTodos();
+
+    // Filtrar solo productos con stock > 0
+    const catalogo = productos
+      .filter(p => p.stock > 0)
+      .map(p => ({
+        id: p.id_producto,
+        nombre: p.nombre,
+        descripcion: p.descripcion,
+        precio_venta: p.precio_venta,
+        stock: p.stock
+      }));
+
+    res.json(catalogo);
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 
 
