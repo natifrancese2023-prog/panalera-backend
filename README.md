@@ -5,13 +5,25 @@ Incluye autenticación con JWT, control de roles (cliente/dueño), validaciones 
 
 ---
 
-## 🚀 Tecnologías utilizadas
-- **Node.js + Express** → servidor backend
-- **PostgreSQL** → base de datos
-- **JWT (jsonwebtoken)** → autenticación y control de acceso
-- **dotenv** → gestión de variables de entorno
-- **Postman** → pruebas de endpoints
-- **GitHub** → portafolio y documentación
+Tecnologías usadas
+Área	Tecnología	Uso principal
+Backend	Node.js + Express	Servidor y API REST
+
+Base de datos	PostgreSQL	Persistencia de datos
+
+ORM / Queries	Consultas parametrizadas ($1, $2)	Seguridad contra inyección SQL
+
+Seguridad	Helmet, CORS, XSS-clean	Protección de cabeceras y sanitización
+
+Rate limiting	Express-rate-limit	Control de intentos en login, registro y pedidos
+
+Gestión de procesos	PM2	Reinicio automático y cluster en producción
+
+Testing	Jest + Supertest	Suite de QA automatizada
+
+Documentación	Markdown + Excel	Casos de prueba y checklist NFR
+
+Control de versiones	GitHub	Repositorio y colaboración
 
 ---
 

@@ -1,0 +1,17 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 50
+
+scenarios:
+  - name: "Pedidos con JWT"
+    flow:
+      - post:
+          url: "/pedidos"
+          headers:
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJuYXRpQGNsaWVudGUuY29tIiwicm9sIjoiY2xpZW50ZSIsImlhdCI6MTc3MzU4MjMwOCwiZXhwIjoxN773611MTA4fQ.0asFXIQZG_uOqYQ97Vmn-LGHyQKXgyZ4errqelSRHoU"
+          json:
+            productos:
+              - id_producto: 1
+                cantidad: 2
