@@ -1,6 +1,7 @@
 const cors = require('cors');
 module.exports = cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET','POST','PUT','DELETE'],
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // ✅ dinámico para Render
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 });
+ 
