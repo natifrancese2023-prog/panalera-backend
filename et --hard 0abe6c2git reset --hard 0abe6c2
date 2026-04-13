@@ -1,0 +1,31 @@
+[33mb3fd7ab[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: commit: Fix: agregar URL de Render a CORS
+[33me108bfe[m HEAD@{1}: commit: FIX: Agregadas dependencias faltantes detectadas por depcheck
+[33mce8917e[m HEAD@{2}: commit: FIX: sincronización de dependencias y limpieza de repo
+[33m415ed23[m HEAD@{3}: commit: Actualización estructural de dependencias
+[33mc3d1bdb[m HEAD@{4}: commit: Dependencias: Se agrega xss y librerías de seguridad faltantes
+[33m25023a4[m HEAD@{5}: commit: Solución: Se agrega helmet y se aseguran dependencias
+[33m1910014[m HEAD@{6}: commit: Dependencias restauradas: express, pg, dotenv, bcrypt, cors y cloudinary
+[33m994153e[m HEAD@{7}: commit: Solución: Se agrega dotenv a las dependencias
+[33mdc07594[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m, [m[1;31morigin/feature/pedidos[m[33m, [m[1;31morigin/feature/auth[m[33m, [m[1;31morigin/docs/nfr[m[33m, [m[1;32mfeature/pedidos[m[33m, [m[1;32mfeature/auth[m[33m)[m HEAD@{8}: checkout: moving from docs/nfr to main
+[33m0abe6c2[m[33m ([m[1;32mdocs/nfr[m[33m)[m HEAD@{9}: commit: Conexión a Neon configurada y tablas creadas
+[33md57adf2[m HEAD@{10}: commit: Feature: Módulo de exportación a Excel finalizado y sincronizado
+[33m47e6e01[m HEAD@{11}: commit: Actualización: soporte para variantes en Excel y lógica de productos Mimitos
+[33mcdf6ea2[m HEAD@{12}: reset: moving to origin/main
+[33mdc07594[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m, [m[1;31morigin/feature/pedidos[m[33m, [m[1;31morigin/feature/auth[m[33m, [m[1;31morigin/docs/nfr[m[33m, [m[1;32mfeature/pedidos[m[33m, [m[1;32mfeature/auth[m[33m)[m HEAD@{13}: checkout: moving from feature/pedidos to docs/nfr
+[33mdc07594[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m, [m[1;31morigin/feature/pedidos[m[33m, [m[1;31morigin/feature/auth[m[33m, [m[1;31morigin/docs/nfr[m[33m, [m[1;32mfeature/pedidos[m[33m, [m[1;32mfeature/auth[m[33m)[m HEAD@{14}: checkout: moving from feature/auth to feature/pedidos
+[33mdc07594[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m, [m[1;31morigin/feature/pedidos[m[33m, [m[1;31morigin/feature/auth[m[33m, [m[1;31morigin/docs/nfr[m[33m, [m[1;32mfeature/pedidos[m[33m, [m[1;32mfeature/auth[m[33m)[m HEAD@{15}: checkout: moving from main to feature/auth
+[33mdc07594[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m, [m[1;31morigin/feature/pedidos[m[33m, [m[1;31morigin/feature/auth[m[33m, [m[1;31morigin/docs/nfr[m[33m, [m[1;32mfeature/pedidos[m[33m, [m[1;32mfeature/auth[m[33m)[m HEAD@{16}: Branch: renamed refs/heads/main to refs/heads/main
+[33mdc07594[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m, [m[1;31morigin/feature/pedidos[m[33m, [m[1;31morigin/feature/auth[m[33m, [m[1;31morigin/docs/nfr[m[33m, [m[1;32mfeature/pedidos[m[33m, [m[1;32mfeature/auth[m[33m)[m HEAD@{18}: Branch: renamed refs/heads/main to refs/heads/main
+[33mdc07594[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m, [m[1;31morigin/feature/pedidos[m[33m, [m[1;31morigin/feature/auth[m[33m, [m[1;31morigin/docs/nfr[m[33m, [m[1;32mfeature/pedidos[m[33m, [m[1;32mfeature/auth[m[33m)[m HEAD@{20}: commit: Backend MVP con CRUD, NFR y tests
+[33m152e910[m HEAD@{21}: commit: QA: agregar casos_de_prueba_jets.md y actualizar tests de productos/pedidos
+[33m29668c5[m HEAD@{22}: commit: Agrego package.json y renombro carpeta
+[33m902e3d9[m HEAD@{23}: commit: Agrego README.md con documentación del proyecto
+[33m6c7c9ce[m HEAD@{24}: commit: Elimino .env del repositorio
+[33m108df71[m HEAD@{25}: commit: Agrego .gitignore para ocultar .env
+[33m95149d0[m HEAD@{26}: commit: Subo mi versión completa del código
+[33m2aa7b14[m HEAD@{27}: commit: Actualizo validaciones en crearPedido y README
+[33mcb3beed[m HEAD@{28}: Branch: renamed refs/heads/main to refs/heads/main
+[33mcb3beed[m HEAD@{30}: Branch: renamed refs/heads/main to refs/heads/main
+[33mcb3beed[m HEAD@{32}: Branch: renamed refs/heads/main to refs/heads/main
+[33mcb3beed[m HEAD@{34}: Branch: renamed refs/heads/master to refs/heads/main
+[33mcb3beed[m HEAD@{36}: commit (initial): Primer commit - backend pañalera
