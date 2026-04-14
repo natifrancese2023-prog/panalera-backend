@@ -1,24 +1,28 @@
 const express = require('express');
+const cors = require('cors'); // Importamos la librería
+const helmet = require('helmet'); // Importamos helmet
 require('dotenv').config();
-console.log('JWT_SECRET cargado:', process.env.JWT_SECRET);
+
+console.log('JWT_SECRET cargado:', process.env.JWT_SECRET ? 'SÍ' : 'NO');
 const app = express();
 
-// ✅ CORS siempre primero — antes de cualquier otro middleware
-app.use(require('./middlewares/corsConfig'));
-app.use(express.json());
-app.use(require('./middlewares/helmetConfig'));
-app.use(require('./middlewares/xssConfig'));
-
-// Rate limiters por ruta específica
-const loginLimiter    = require('./middlewares/loginLimiter');
+// 1. CONFIGURACIONES (Importamos los objetos/funciones)
+const corsOptions = require('./middlewares/corsConfig');
+const loginLimiter = require('./middlewares/loginLimiter');
 const registerLimiter = require('./middlewares/registerLimiter');
-const pedidosLimiter  = require('./middlewares/pedidosLimiter');
+const pedidosLimiter = require('./middlewares/pedidosLimiter');
 
+// 2. MIDDLEWARES GLOBALES (Aquí es donde se rompe si no usás cors())
+app.use(cors(corsOptions)); // ✅ CORREGIDO: Usamos la función cors
+app.use(helmet());          // ✅ CORREGIDO: Usamos helmet como función
+app.use(express.json());
+
+// 3. RATE LIMITERS POR RUTA (Solo donde se necesitan)
 app.use('/usuarios/login',    loginLimiter);
 app.use('/usuarios/registro', registerLimiter);
 app.use('/pedidos',           pedidosLimiter);
 
-// ✅ Todas las rutas registradas
+// 4. RUTAS
 app.use('/productos',   require('./routes/productos'));
 app.use('/usuarios',    require('./routes/usuarios'));
 app.use('/pedidos',     require('./routes/pedidos'));
@@ -30,12 +34,12 @@ app.use('/gastos',      require('./routes/gastos'));
 app.use('/api',         require('./routes/export'));
 app.use('/api/stats',   require('./routes/stats.routes'));
 
-app.use(require('./middlewares/errorHandler'));
+// 5. MANEJO DE ERRORES (Siempre va ÚLTIMO)
+const errorHandler = require('./middlewares/errorHandler');
+app.use(errorHandler);
 
-// 👇 Exportá la app para Supertest
 module.exports = app;
 
-// Solo levantá el servidor si ejecutás directamente este archivo
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {

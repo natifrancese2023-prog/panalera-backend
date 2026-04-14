@@ -3,6 +3,7 @@ const router = express.Router();
 const ExcelJS = require('exceljs');
 const pool = require('../db');
 
+
 router.get('/export', async (req, res) => {
   const { inicio, fin, tipo } = req.query;
   const workbook = new ExcelJS.Workbook();
