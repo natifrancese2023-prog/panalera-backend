@@ -1,7 +1,12 @@
-const cors = require('cors');
-module.exports = cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // ✅ dinámico para Render
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-});
- 
+const corsOptions = {
+    origin: [
+        'https://mimitos-admin.onrender.com', // Tu frontend en producción
+        'http://localhost:3000',              // Para cuando pruebes local
+        'http://localhost:5173'               // Por si usas Vite local
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // Importante para las cookies/tokens
+};
+
+module.exports = corsOptions;
