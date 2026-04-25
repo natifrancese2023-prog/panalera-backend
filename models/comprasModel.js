@@ -1,5 +1,6 @@
 const pool = require('../db');
-exports.insertar = async ({ id_proveedor, forma_pago, estado_pago, observaciones, productos }) => {
+
+const insertar = async ({ id_proveedor, forma_pago, estado_pago, observaciones, productos }) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -10,37 +11,40 @@ exports.insertar = async ({ id_proveedor, forma_pago, estado_pago, observaciones
        VALUES ($1, $2, $3, $4, 0) RETURNING *`,
       [id_proveedor, forma_pago || null, estado_pago || 'pendiente', observaciones || null]
     );
+    
     const compra = compraRes.rows[0];
-    let total = 0;
+    let totalAcumulado = 0;
 
-    // 2. Insertar detalles y actualizar stock en la tabla de VARIANTES
+    // 2. Procesar cada producto, actualizar stock y calcular totales
     for (const p of productos) {
       const subtotal = p.cantidad * p.precio_unitario;
-      total += subtotal;
+      totalAcumulado += subtotal;
 
-      // Insertamos el id_variante en el detalle de compra
       await client.query(
         `INSERT INTO detalle_compra (id_compra, id_producto, id_variante, cantidad, precio_unitario, subtotal)
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [compra.id_compra, p.id_producto, p.id_variante, p.cantidad, p.precio_unitario, subtotal]
+        [compra.id_compra, p.id_producto, p.id_variante || null, p.cantidad, p.precio_unitario, subtotal]
       );
 
-      // 🚀 INCREMENTAR STOCK EN LA VARIANTE ESPECÍFICA
-      // También actualizamos el precio_compra de esa variante para tener el costo actualizado
-      await client.query(
-        `UPDATE producto_variantes SET stock = stock + $1, precio_compra = $2 WHERE id_variante = $3`,
-        [p.cantidad, p.precio_unitario, p.id_variante]
-      );
+      // Actualizar stock y precio de costo: Si tiene variante a la variante, si no al producto base
+      if (p.id_variante) {
+        await client.query(
+          `UPDATE producto_variantes SET stock = stock + $1, precio_compra = $2 WHERE id_variante = $3`,
+          [p.cantidad, p.precio_unitario, p.id_variante]
+        );
+      } else {
+        await client.query(
+          `UPDATE producto SET stock = stock + $1, precio_compra = $2 WHERE id_producto = $3`,
+          [p.cantidad, p.precio_unitario, p.id_producto]
+        );
+      }
     }
 
-    // 3. Actualizar total de la compra
-    await client.query(
-      'UPDATE compra SET total=$1 WHERE id_compra=$2',
-      [total, compra.id_compra]
-    );
-
+    // 3. Actualizar el total final en la compra
+    await client.query('UPDATE compra SET total = $1 WHERE id_compra = $2', [totalAcumulado, compra.id_compra]);
+    
     await client.query('COMMIT');
-    return { ...compra, total };
+    return { ...compra, total: totalAcumulado };
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -48,35 +52,42 @@ exports.insertar = async ({ id_proveedor, forma_pago, estado_pago, observaciones
     client.release();
   }
 };
-exports.obtenerDetalle = async (id) => {
+
+const obtenerDetalle = async (id_compra) => {
   const result = await pool.query(`
     SELECT 
-        dc.*, 
-        pr.nombre AS producto_nombre, 
-        v.nombre_variante -- 👈 Importante para saber qué talle se compró
+      dc.*, 
+      p.nombre AS producto_nombre, 
+      pv.nombre_variante AS variante_nombre
     FROM detalle_compra dc
-    JOIN producto pr ON pr.id_producto = dc.id_producto
-    JOIN producto_variantes v ON v.id_variante = dc.id_variante
+    JOIN producto p ON dc.id_producto = p.id_producto
+    LEFT JOIN producto_variantes pv ON dc.id_variante = pv.id_variante
     WHERE dc.id_compra = $1
-  `, [id]);
+  `, [id_compra]);
   return result.rows;
 };
-exports.obtenerTodas = async () => {
+
+const obtenerTodas = async () => {
   const result = await pool.query(`
-    SELECT c.*, p.nombre AS proveedor_nombre
+    SELECT c.*, prov.nombre AS proveedor_nombre
     FROM compra c
-    JOIN proveedor p ON p.id_proveedor = c.id_proveedor
+    JOIN proveedor prov ON c.id_proveedor = prov.id_proveedor
     ORDER BY c.fecha DESC
   `);
   return result.rows;
 };
 
-// obtenerDetalle definido arriba con JOIN a producto_variantes — no duplicar
-
-exports.actualizarEstadoPago = async (id, { estado_pago, forma_pago }) => {
+const actualizarEstadoPago = async (id, estado_pago, forma_pago) => {
   const result = await pool.query(
-    `UPDATE compra SET estado_pago=$1, forma_pago=$2 WHERE id_compra=$3 RETURNING *`,
+    `UPDATE compra SET estado_pago = $1, forma_pago = $2 WHERE id_compra = $3 RETURNING *`,
     [estado_pago, forma_pago, id]
   );
   return result.rows[0];
+};
+
+module.exports = {
+  insertar,
+  obtenerDetalle,
+  obtenerTodas,
+  actualizarEstadoPago
 };

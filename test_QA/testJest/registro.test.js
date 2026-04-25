@@ -1,6 +1,6 @@
 // Test QA/testJest/registro.test.js
 const request = require("supertest");
-const app = require("../../index");
+const app = require("../../app");
 
 describe("POST /usuarios/registro", () => {
 it("debería rechazar si faltan campos obligatorios", async () => {

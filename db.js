@@ -7,9 +7,7 @@ if (process.env.DATABASE_URL) {
   // CONFIGURACIÓN PARA RENDER (Producción)
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { 
-      rejectUnauthorized: false 
-    },
+    ssl: { rejectUnauthorized: false },
   });
 } else {
   // CONFIGURACIÓN PARA TU PC (Local)
@@ -19,15 +17,16 @@ if (process.env.DATABASE_URL) {
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port:     process.env.DB_PORT,
+    // ✅ AGREGAMOS ESTO PARA QUE NEON NO TE RECHACE EN LOCAL
+    ssl: { rejectUnauthorized: false }, 
   });
 }
 
-// Prueba de conexión rápida
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
     console.error('❌ Error de conexión:', err.stack);
   } else {
-    const mode = process.env.DATABASE_URL ? 'PRODUCCIÓN (Neon)' : 'LOCAL';
+    const mode = process.env.DATABASE_URL ? 'PRODUCCIÓN (Neon)' : 'LOCAL (Neon)';
     console.log(`✅ Conexión exitosa en modo: ${mode}`);
   }
 });

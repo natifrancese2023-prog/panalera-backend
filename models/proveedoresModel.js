@@ -1,43 +1,53 @@
 const pool = require('../db');
 
-exports.obtenerTodos = async () => {
+const obtenerTodos = async () => {
   const result = await pool.query(
-    'SELECT * FROM proveedor ORDER BY nombre ASC'
+    'SELECT id_proveedor, nombre, telefono, direccion FROM proveedor ORDER BY nombre ASC'
   );
   return result.rows;
 };
 
-exports.obtenerPorId = async (id) => {
+const obtenerPorId = async (id) => {
   const result = await pool.query(
-    'SELECT * FROM proveedor WHERE id_proveedor = $1',
+    'SELECT * FROM proveedor WHERE id_proveedor = $1', 
     [id]
   );
   return result.rows[0];
 };
 
-exports.insertar = async ({ nombre, telefono, email, direccion, cuit }) => {
+const insertar = async (datos) => {
+  const { nombre, telefono, direccion } = datos;
   const result = await pool.query(
-    `INSERT INTO proveedor (nombre, telefono, email, direccion, cuit)
-     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [nombre, telefono || null, email || null, direccion || null, cuit || null]
+    `INSERT INTO proveedor (nombre, telefono, direccion) 
+     VALUES ($1, $2, $3) RETURNING *`,
+    [nombre, telefono, direccion]
   );
   return result.rows[0];
 };
 
-exports.actualizar = async (id, { nombre, telefono, email, direccion, cuit }) => {
+const actualizar = async (id, datos) => {
+  const { nombre, telefono, direccion } = datos;
   const result = await pool.query(
-    `UPDATE proveedor
-     SET nombre=$1, telefono=$2, email=$3, direccion=$4, cuit=$5
-     WHERE id_proveedor=$6 RETURNING *`,
-    [nombre, telefono || null, email || null, direccion || null, cuit || null, id]
+    `UPDATE proveedor 
+     SET nombre = $1, telefono = $2, direccion = $3 
+     WHERE id_proveedor = $4 RETURNING *`,
+    [nombre, telefono, direccion, id]
   );
   return result.rows[0];
 };
 
-exports.eliminar = async (id) => {
+const eliminar = async (id) => {
   const result = await pool.query(
-    'DELETE FROM proveedor WHERE id_proveedor = $1 RETURNING *',
+    'DELETE FROM proveedor WHERE id_proveedor = $1 RETURNING *', 
     [id]
   );
   return result.rows[0];
+};
+
+module.exports = {
+  obtenerTodos,
+  obtenerPorId,
+  insertar,
+  actualizar,
+  eliminar
 };

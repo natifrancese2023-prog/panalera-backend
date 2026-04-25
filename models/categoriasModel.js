@@ -1,21 +1,13 @@
 const pool = require('../db');
 
-exports.obtenerTodas = async () => {
+const obtenerTodas = async () => {
   const result = await pool.query(
     'SELECT * FROM categoria ORDER BY nombre ASC'
   );
   return result.rows;
 };
 
-exports.insertar = async (nombre) => {
-  const result = await pool.query(
-    'INSERT INTO categoria (nombre) VALUES ($1) RETURNING *',
-    [nombre]
-  );
-  return result.rows[0];
-};
-
-exports.obtenerPorId = async (id) => {
+const obtenerPorId = async (id) => {
   const result = await pool.query(
     'SELECT * FROM categoria WHERE id_categoria = $1',
     [id]
@@ -23,7 +15,7 @@ exports.obtenerPorId = async (id) => {
   return result.rows[0];
 };
 
-exports.obtenerPorNombre = async (nombre) => {
+const obtenerPorNombre = async (nombre) => {
   const result = await pool.query(
     'SELECT * FROM categoria WHERE LOWER(nombre) = LOWER($1)',
     [nombre]
@@ -31,10 +23,26 @@ exports.obtenerPorNombre = async (nombre) => {
   return result.rows[0];
 };
 
-exports.eliminar = async (id) => {
+const insertar = async (nombre) => {
+  const result = await pool.query(
+    'INSERT INTO categoria (nombre) VALUES ($1) RETURNING *',
+    [nombre]
+  );
+  return result.rows[0];
+};
+
+const eliminar = async (id) => {
   const result = await pool.query(
     'DELETE FROM categoria WHERE id_categoria = $1 RETURNING *',
     [id]
   );
   return result.rows[0];
+};
+
+module.exports = {
+  obtenerTodas,
+  obtenerPorId,
+  obtenerPorNombre,
+  insertar,
+  eliminar
 };

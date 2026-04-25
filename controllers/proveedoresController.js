@@ -26,7 +26,8 @@ exports.obtenerPorId = async (req, res, next) => {
 
 exports.crear = async (req, res, next) => {
   try {
-    const { nombre, telefono, email, direccion, cuit } = req.body;
+    // Quitamos 'email' y 'cuit' de la desestructuración porque no están en tu tabla
+    const { nombre, telefono, direccion } = req.body;
 
     if (!nombre?.trim()) {
       return res.status(400).json({ error: 'El nombre del proveedor es obligatorio' });
@@ -35,9 +36,7 @@ exports.crear = async (req, res, next) => {
     const proveedor = await proveedoresModel.insertar({
       nombre: nombre.trim(),
       telefono,
-      email,
-      direccion,
-      cuit
+      direccion
     });
 
     res.status(201).json({ mensaje: 'Proveedor creado', proveedor });
@@ -49,7 +48,7 @@ exports.crear = async (req, res, next) => {
 exports.actualizar = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { nombre, telefono, email, direccion, cuit } = req.body;
+    const { nombre, telefono, direccion } = req.body;
 
     if (!nombre?.trim()) {
       return res.status(400).json({ error: 'El nombre del proveedor es obligatorio' });
@@ -58,9 +57,7 @@ exports.actualizar = async (req, res, next) => {
     const proveedor = await proveedoresModel.actualizar(id, {
       nombre: nombre.trim(),
       telefono,
-      email,
-      direccion,
-      cuit
+      direccion
     });
 
     if (!proveedor) {
@@ -84,12 +81,6 @@ exports.eliminar = async (req, res, next) => {
 
     res.json({ mensaje: 'Proveedor eliminado' });
   } catch (err) {
-    // Si tiene compras asociadas Postgres lanza error de FK
-    if (err.code === '23503') {
-      return res.status(400).json({
-        error: 'No se puede eliminar: hay compras asociadas a este proveedor'
-      });
-    }
     next(err);
   }
 };

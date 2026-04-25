@@ -1,137 +1,119 @@
-const pool = require('../db');
-exports.insertarPedido = async (idCliente, productos) => {
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
+const pool = require("../db");
 
-        // 1. Crear la cabecera del pedido
-        const pedidoRes = await client.query(
-            'INSERT INTO pedido (id_cliente, estado, total) VALUES ($1, $2, $3) RETURNING *',
-            [idCliente, 'pendiente', 0]
-        );
-        const idPedido = pedidoRes.rows[0].id_pedido;
-        let totalAcumulado = 0;
-
-        // 2. Procesar cada item
-        for (const p of productos) {
-            // VALIDACIÓN ANTI-ERROR 500: Verificamos que la variante exista
-            const varRes = await client.query(
-                'SELECT precio_venta FROM producto_variantes WHERE id_variante = $1',
-                [p.id_variante]
-            );
-            
-            if (varRes.rows.length === 0) {
-                throw new Error(`La variante con ID ${p.id_variante} no existe en la base de datos.`);
-            }
-
-            const precioVenta = varRes.rows[0].precio_venta;
-            const subtotal = precioVenta * p.cantidad;
-            totalAcumulado += subtotal;
-
-            // Insertar en detallepedido
-            await client.query(
-                'INSERT INTO detallepedido (id_pedido, id_producto, id_variante, cantidad, subtotal) VALUES ($1, $2, $3, $4, $5)',
-                [idPedido, p.id_producto, p.id_variante, p.cantidad, subtotal]
-            );
-
-            // RESTAR STOCK (Con validación de stock suficiente si quisieras)
-            await client.query(
-                'UPDATE producto_variantes SET stock = stock - $1 WHERE id_variante = $2',
-                [p.cantidad, p.id_variante]
-            );
-        }
-
-        // 3. Actualizar el total final
-        const finalRes = await client.query(
-            'UPDATE pedido SET total = $1 WHERE id_pedido = $2 RETURNING *',
-            [totalAcumulado, idPedido]
-        );
-
-        await client.query('COMMIT');
-        return finalRes.rows[0];
-
-    } catch (err) {
-        await client.query('ROLLBACK');
-        console.error("Error en insertarPedido:", err.message); // Para ver el error real en la consola
-        throw err;
-    } finally {
-        client.release();
-    }
-};
-
-exports.obtenerPorCliente = async (idCliente) => {
-  const result = await pool.query('SELECT * FROM pedido WHERE id_cliente=$1', [idCliente]);
-  return result.rows;
-};
-exports.obtenerTodos = async () => {
-  const result = await pool.query(`
-    SELECT 
-      p.id_pedido,
-      p.estado,
-      p.total,
-      p.fecha,
-      u.id_usuario,
-      u.nombre AS cliente_nombre,
-      u.apellido AS cliente_apellido,
-      u.email AS cliente_email
-    FROM pedido p
-    JOIN usuario u ON p.id_cliente = u.id_usuario
-    ORDER BY p.fecha DESC
-  `);
-  return result.rows;
-};
-exports.obtenerDetalle = async (idPedido) => {
-  const query = `
-    SELECT 
-      dp.id_producto,
-      dp.id_variante,
-      dp.cantidad,
-      dp.subtotal,
-      pr.nombre AS producto_nombre,
-      v.nombre_variante, -- 👈 Ahora traemos el nombre del talle/variante
-      v.precio_venta AS precio_unitario_variante
-    FROM detallepedido dp
-    JOIN producto pr ON dp.id_producto = pr.id_producto
-    LEFT JOIN producto_variantes v ON dp.id_variante = v.id_variante -- 👈 Join para ver qué variante fue
-    WHERE dp.id_pedido = $1
-  `;
-  
-  const result = await pool.query(query, [idPedido]);
-  return result.rows;
-};
-exports.actualizarEstado = async (idPedido, nuevoEstado) => {
+// ============================================================
+// FUNCIONES DEL MODELO (Ajustadas a tabla 'pedido' en singular)
+// ============================================================
+const insertar = async ({ id_cliente, productos }) => {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
-    // 1. Obtener el estado anterior y los items del pedido antes de cambiar nada
-    const pedidoPrevio = await client.query('SELECT estado FROM pedido WHERE id_pedido = $1', [idPedido]);
-    const estadoAnterior = pedidoPrevio.rows[0].estado;
+    // 1. Calcular el total del pedido para la tabla 'pedido'
+    const totalPedido = productos.reduce(
+      (acc, p) => acc + p.cantidad * p.precio_unitario,
+      0,
+    );
 
-    // 2. Si el pedido se CANCELA y antes NO estaba cancelado, devolvemos el stock
-    if (nuevoEstado === 'cancelado' && estadoAnterior !== 'cancelado') {
-      const items = await client.query('SELECT id_variante, cantidad FROM detallepedido WHERE id_pedido = $1', [idPedido]);
-      
-      for (const item of items.rows) {
-        await client.query(
-          'UPDATE producto_variantes SET stock = stock + $1 WHERE id_variante = $2',
-          [item.cantidad, item.id_variante]
+    // 2. Insertar en la cabecera: public.pedido
+    const resPedido = await client.query(
+      `INSERT INTO public.pedido (id_cliente, total, estado, fecha) 
+       VALUES ($1, $2, 'pendiente', NOW()) 
+       RETURNING id_pedido`,
+      [id_cliente, totalPedido],
+    );
+    const id_pedido = resPedido.rows[0].id_pedido;
+
+    // 3. Insertar cada renglón en: public.detallepedido
+    for (const p of productos) {
+      if (!p.id_variante) {
+        throw new Error(
+          `Error: El producto con ID ${p.id_producto} no tiene una variante válida.`,
+        );
+      }
+
+      // IMPORTANTE: Según tu captura, la columna se llama 'subtotal'
+      const subtotalLinea = p.cantidad * p.precio_unitario;
+      await client.query(
+        `INSERT INTO public.detallepedido (id_pedido, id_producto, id_variante, cantidad, precio_unitario, subtotal) 
+   VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          id_pedido,
+          p.id_producto,
+          p.id_variante,
+          p.cantidad,
+          p.precio_unitario,
+          subtotalLinea,
+        ],
+      );
+
+      // 4. Descontar stock en public.producto_variantes
+      const resStock = await client.query(
+        `UPDATE public.producto_variantes 
+         SET stock = stock - $1 
+         WHERE id_variante = $2 AND stock >= $1
+         RETURNING stock`,
+        [p.cantidad, p.id_variante],
+      );
+
+      if (resStock.rowCount === 0) {
+        throw new Error(
+          `Stock insuficiente para la variante ID: ${p.id_variante}`,
         );
       }
     }
 
-    // 3. Actualizar el estado del pedido
-    const result = await client.query(
-      'UPDATE pedido SET estado=$1 WHERE id_pedido=$2 RETURNING *',
-      [nuevoEstado, idPedido]
-    );
-
-    await client.query('COMMIT');
-    return result.rows[0];
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
+    await client.query("COMMIT");
+    return { id_pedido, total: totalPedido };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
   } finally {
     client.release();
   }
+};
+const obtenerTodos = async () => {
+  const query = `
+   SELECT p.*, u.nombre AS cliente_nombre, u.apellido AS cliente_apellido, u.email AS cliente_email
+FROM public.pedido p
+JOIN public.usuario u ON p.id_cliente = u.id_usuario
+ORDER BY p.fecha DESC
+  `;
+  const res = await pool.query(query);
+  return res.rows;
+};
+
+const obtenerDetalle = async (id_pedido) => {
+  const query = `
+    SELECT dp.*, prod.nombre as nombre_producto, v.nombre_variante
+    FROM public.detallepedido dp
+    JOIN public.producto prod ON dp.id_producto = prod.id_producto
+    LEFT JOIN public.producto_variantes v ON dp.id_variante = v.id_variante
+    WHERE dp.id_pedido = $1
+  `;
+  const res = await pool.query(query, [id_pedido]);
+  return res.rows;
+};
+
+const actualizarEstado = async (id_pedido, estado) => {
+  const res = await pool.query(
+    "UPDATE public.pedido SET estado = $1 WHERE id_pedido = $2 RETURNING *",
+    [estado, id_pedido],
+  );
+  return res.rows[0];
+};
+
+const obtenerPorCliente = async (id_cliente) => {
+  const res = await pool.query(
+    "SELECT * FROM public.pedido WHERE id_cliente = $1 ORDER BY fecha DESC",
+    [id_cliente],
+  );
+  return res.rows;
+};
+
+module.exports = {
+  insertar,
+  obtenerTodos,
+  obtenerDetalle,
+  actualizarEstado,
+  obtenerPorCliente,
 };

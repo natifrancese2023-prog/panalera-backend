@@ -34,5 +34,9 @@
     "pg": "^8.20.0",
     "xss": "^1.0.15",
     "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
   }
 }

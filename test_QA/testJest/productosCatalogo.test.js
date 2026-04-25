@@ -1,6 +1,6 @@
 // Test QA/testJest/productosCatalogo.test.js
 const request = require("supertest");
-const app = require("../../index");
+const app = require("../../app");
 
 describe("GET /productos/catalogo", () => {
 it("debería devolver productos disponibles sin necesidad de token", async () => {

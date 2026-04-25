@@ -1,64 +1,52 @@
 const { validationResult } = require('express-validator');
 const pedidosModel = require('../models/pedidosModel');
 const pool = require('../db'); // ✅ necesario para validar stock por variante
-
 exports.crearPedido = async (req, res) => {
-  const errores = validationResult(req);
-  console.log('Body recibido:', req.body);
+  // --- LOG DE ENTRADA ---
+  console.log("=== NUEVA SOLICITUD DE PEDIDO ===");
+  console.log("Cuerpo completo:", JSON.stringify(req.body, null, 2));
 
+  const errores = validationResult(req);
   if (!errores.isEmpty()) {
+    console.log("Errores de validación:", errores.array());
     return res.status(400).json({ errores: errores.array() });
   }
 
   try {
-    let idCliente;
+    const { id_cliente, productos } = req.body;
 
-    if (req.usuario.rol === 'cliente') {
-      idCliente = req.usuario.id;
-    } else if (req.usuario.rol === 'dueno') {   // 👈 ojo, acá usá "dueno"
-      idCliente = req.body.id_cliente;
-      if (!idCliente) {
-        return res.status(400).send('Debe especificar id_cliente');
-      }
+    if (!id_cliente || !productos || productos.length === 0) {
+      return res.status(400).json({ error: 'Datos incompletos: cliente o productos ausentes' });
     }
 
-    const { productos } = req.body;
-
-    for (const p of productos) {
-      // Validamos cantidad antes de consultar la DB
-      if (!p.cantidad || p.cantidad <= 0) {
-        return res.status(400).send(`La cantidad debe ser mayor a 0`);
+    // --- AUDITORÍA DE PRODUCTOS ---
+    productos.forEach((p, index) => {
+      console.log(`Línea ${index}: ID Prod: ${p.id_producto}, ID Var: ${p.id_variante}, Precio: ${p.precio_unitario}, Cant: ${p.cantidad}`);
+      
+      if (!p.precio_unitario || p.precio_unitario <= 0) {
+        console.error(`⚠️ ALERTA: El producto en el índice ${index} NO TIENE PRECIO.`);
       }
+    });
 
-      // ✅ CORRECCIÓN: validamos stock de la VARIANTE específica, no del producto total.
-      // Antes se usaba obtenerPorId(id_producto) que devuelve stock_total agregado,
-      // lo que permitía vender una variante con stock 0 si otra variante tenía stock.
-      const varRes = await pool.query(
-        `SELECT pv.stock, pr.nombre AS nombre_producto
-         FROM producto_variantes pv
-         JOIN producto pr ON pr.id_producto = pv.id_producto
-         WHERE pv.id_variante = $1 AND pv.id_producto = $2`,
-        [p.id_variante, p.id_producto]
-      );
+    const resultado = await pedidosModel.insertar({ id_cliente, productos });
 
-      if (varRes.rows.length === 0) {
-        return res.status(400).send(`La variante ${p.id_variante} no existe o no pertenece al producto ${p.id_producto}`);
-      }
+    console.log("✅ Pedido insertado con éxito en DB");
+    res.status(201).json({
+      mensaje: 'Pedido creado correctamente',
+      ...resultado
+    });
 
-      const { stock, nombre_producto } = varRes.rows[0];
-      if (stock < p.cantidad) {
-        return res.status(400).send(`Stock insuficiente para "${nombre_producto}" (variante ${p.id_variante}). Stock disponible: ${stock}`);
-      }
-    }
-
-    const nuevoPedido = await pedidosModel.insertarPedido(idCliente, productos);
-    res.json(nuevoPedido);
   } catch (err) {
-    console.error('Error en crearPedido:', err.message, err.stack);
-    res.status(500).send('Error al crear pedido');
+    // Aquí es donde "err.message" nos dirá si es un problema de Neon
+    console.error('❌ ERROR EN MODELO:', err.message);
+
+    if (err.message.includes('Stock') || err.message.includes('variante') || err.message.includes('precio')) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    res.status(500).json({ error: 'Error interno: ' + err.message });
   }
 };
-
 exports.cambiarEstado = async (req, res) => {
   try {
     const { id } = req.params;
@@ -66,13 +54,19 @@ exports.cambiarEstado = async (req, res) => {
 
     const estadosValidos = ['pendiente', 'confirmado', 'entregado', 'cancelado', 'facturado'];
     if (!estadosValidos.includes(estado)) {
-      return res.status(400).send('Estado inválido');
+      return res.status(400).json({ error: 'Estado inválido' });
     }
 
     const actualizado = await pedidosModel.actualizarEstado(id, estado);
-    res.json(actualizado);
+    
+    if (!actualizado) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    res.json({ mensaje: 'Estado actualizado', pedido: actualizado });
   } catch (err) {
-    res.status(500).send('Error al cambiar estado del pedido');
+    console.error(err.message);
+    res.status(500).json({ error: 'Error al cambiar estado del pedido' });
   }
 };
 
