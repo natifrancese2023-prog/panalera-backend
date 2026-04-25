@@ -1,6 +1,7 @@
 const corsOptions = {
     origin: [
-        'https://mimitos-admin.onrender.com', // Tu frontend en producción
+        'https://mimitos-admin.onrender.com',
+        'https://mimitos-cliente.onrender.com', // Tu frontend en producción
         'http://localhost:3000',              // Para cuando pruebes local
         'http://localhost:5173',
         'http://localhost:5174',
