@@ -112,24 +112,27 @@ async function listarProductos(req, res, next) {
 async function listarCatalogo(req, res, next) {
   try {
     const productos = await productosModel.obtenerTodosConVariantes();
-    const catalogo = productos
-      .filter((p) => p.stock_total > 0)
-      .map((p) => ({
-        id_producto:       p.id_producto,
-        nombre:            p.nombre,
-        descripcion:       p.descripcion,
-        precio_min:        p.precio_min,
-        precio_compra_min: p.precio_compra_min,
-        imagen_url:        p.imagen_url,
-        categoria:         p.nombre_categoria,
-        variantes:         p.variantes,
-      }));
+    const catalogo = productos.map((p) => ({
+      id_producto:       p.id_producto,
+      nombre:            p.nombre,
+      descripcion:       p.descripcion,
+      precio_min:        p.precio_min,
+      precio_compra_min: p.precio_compra_min,
+      imagen_url:        p.imagen_url,
+      categoria:         p.nombre_categoria,
+      stock_total:       p.stock_total,          // para que el frontend detecte sin stock
+      variantes:         p.variantes.map((v) => ({
+        id_variante:     v.id_variante,
+        nombre_variante: v.nombre_variante,
+        precio_venta:    v.precio_venta,
+        stock:           v.stock,                // necesario para marcar variante sin stock
+      })),
+    }));
     res.json(catalogo);
   } catch (err) {
     next(err);
   }
 }
-
 module.exports = {
   crearProducto,
   actualizarProducto,
