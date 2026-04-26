@@ -92,6 +92,8 @@ const obtenerTodosConVariantes = async () => {
     ORDER BY p.id_producto, v.id_variante;
   `;
   const { rows } = await pool.query(query);
+  console.log("FILAS SQL TOTALES:", rows.length);
+  console.log("FILAS:", JSON.stringify(rows.map(r => ({ id: r.id_producto, nombre: r.nombre, stock: r.stock_variante }))));
   return agruparProductosConVariantes(rows);
 };
 
