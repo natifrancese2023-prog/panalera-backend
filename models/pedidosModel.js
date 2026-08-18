@@ -74,8 +74,15 @@ const actualizarEstado = async (id_pedido, nuevoEstado) => {
 
     const estadoActual = resPedido.rows[0].estado;
     if (estadoActual === nuevoEstado) {
-  return resPedido.rows[0];
-}
+      return resPedido.rows[0];
+    }
+
+    // Un Pedido solamente puede llegar a facturado mediante la
+    // concreción económica de Venta Directa. No permitir esta transición
+    // por el endpoint genérico de estados.
+    if (nuevoEstado === "facturado") {
+      throw new Error("El Pedido debe ser cobrado mediante Venta Directa para pasar a facturado");
+    }
 
     // 2. Validar regla de transición de estado
     stockService.validarTransicionEstado(estadoActual, nuevoEstado);

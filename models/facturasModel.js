@@ -47,7 +47,6 @@ const crear = async ({ id_pedido, forma_pago, observaciones }) => {
   }
 };
 
-// 2. Obtener todas las facturas con datos del cliente (para listados)
 const obtenerTodas = async () => {
   const result = await pool.query(`
     SELECT f.*,
@@ -120,6 +119,7 @@ const anularFactura = async (id_factura, { motivo = null, id_usuario = null } = 
     client.release();
   }
 };
+
 
 module.exports = {
   crear,

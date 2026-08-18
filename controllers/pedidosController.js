@@ -66,6 +66,12 @@ exports.cambiarEstado = async (req, res) => {
     res.json({ mensaje: 'Estado actualizado', pedido: actualizado });
   } catch (err) {
     console.error(err.message);
+    if (err.message.includes('debe ser cobrado mediante Venta Directa')) {
+      return res.status(409).json({ error: err.message });
+    }
+    if (err.message === 'Pedido no encontrado') {
+      return res.status(404).json({ error: err.message });
+    }
     res.status(500).json({ error: 'Error al cambiar estado del pedido' });
   }
 };
