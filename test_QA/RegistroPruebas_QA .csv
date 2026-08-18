@@ -1,0 +1,15 @@
+Métricas del Ciclo 1 — API Pañalera;;;;Métricas del Ciclo 1 — API Pañalera;;
+Métrica;Valor;Nota;;Métrica;Valor;Nota
+Casos planificados;17;Total en CasosPrueba.md;;Casos planificados;6;Total en CasosPrueba.md
+Casos ejecutados;17;;;Casos ejecutados;3;
+Casos OK;11;;;Casos OK;3;
+Casos con falla;6;Ver INC-002 en hoja Incidentes;;Casos con falla;0;
+Casos bloqueados;0;;;Casos bloqueados;0;
+Casos postergados;0;;;Casos postergados;0;CP-PED-005 y CP-PED-006
+% Ejecución;100,0%;Ejecutados / Planificados;;% Ejecución;50,0%;Ejecutados / Planificados
+% Éxito sobre ejecutados;64,7%;OK / Ejecutados;;% Éxito sobre ejecutados;100,0%;OK / Ejecutados
+Umbral de éxito (meta);0,95;Definido en PlanPruebas.md;;Umbral de éxito (meta);0,95;Definido en PlanPruebas.md
+¿Cumple umbral?;SÍ ?;;;¿Cumple umbral?;NO ?;
+Defectos totales;6;ver incidentes;;Defectos totales;0;0
+Defectos críticos abiertos;0;0;;Defectos críticos abiertos;0;0
+Defectos Alta abiertos;0;0;;Defectos Alta abiertos;0;0
