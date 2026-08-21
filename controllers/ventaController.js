@@ -25,6 +25,14 @@ exports.crearVentaDirecta = async (req, res, next) => {
 
     // null y ausencia significan Venta Directa nueva.
     const tienePedido = id_pedido !== undefined && id_pedido !== null;
+    console.log("VENTA DIRECTA RECIBIDA:", {
+  id_pedido,
+  tienePedido,
+  productos,
+  id_cliente,
+  monto_pagado,
+  forma_pago
+});
 
     if (tienePedido) {
       if (!Number.isInteger(Number(id_pedido)) || Number(id_pedido) <= 0) {
