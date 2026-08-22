@@ -58,52 +58,49 @@ const obtenerTodas = async () => {
   `);
   return result.rows;
 };
-
 const obtenerPorId = async (id) => {
-  const result = await pool.query(`
+  const facturaResult = await pool.query(`
     SELECT
       f.*,
-      p.id_pedido,
-      p.id_cliente,
-      p.estado AS pedido_estado,
       u.nombre AS cliente_nombre,
       u.apellido AS cliente_apellido,
       u.email AS cliente_email
-    FROM public.factura f
-    JOIN public.pedido p ON p.id_pedido = f.id_pedido
-    JOIN public.usuario u ON u.id_usuario = p.id_cliente
+    FROM factura f
+    JOIN pedido p ON p.id_pedido = f.id_pedido
+    JOIN usuario u ON u.id_usuario = p.id_cliente
     WHERE f.id_factura = $1
   `, [id]);
 
-  const factura = result.rows[0];
-  if (!factura) return null;
+  const factura = facturaResult.rows[0];
 
-  const detalle = await pool.query(`
+  if (!factura) {
+    return null;
+  }
+
+  const detalleResult = await pool.query(`
     SELECT
       dp.id_detalle,
       dp.id_producto,
       dp.id_variante,
+      pr.nombre AS nombre_producto,
+      pv.nombre_variante,
       dp.cantidad,
       dp.precio_unitario,
-      dp.subtotal,
-      prod.nombre AS nombre_producto,
-      v.nombre_variante
-    FROM public.detallepedido dp
-    JOIN public.producto prod ON prod.id_producto = dp.id_producto
-    LEFT JOIN public.producto_variantes v ON v.id_variante = dp.id_variante
+      dp.subtotal
+    FROM detallepedido dp
+    JOIN producto pr
+      ON pr.id_producto = dp.id_producto
+    LEFT JOIN producto_variantes pv
+      ON pv.id_variante = dp.id_variante
     WHERE dp.id_pedido = $1
-    ORDER BY dp.id_detalle ASC
+    ORDER BY dp.id_detalle
   `, [factura.id_pedido]);
 
-  return { ...factura, detalle: detalle.rows };
+  return {
+    ...factura,
+    detalle: detalleResult.rows
+  };
 };
-
-/**
- * Anula una factura y revierte sus efectos físicos/económicos.
- * tipo_reversion:
- *   - 'dinero': devuelve al cliente lo efectivamente pagado y registra egreso.
- *   - 'nota_credito': conserva el dinero en el negocio y crea crédito a favor.
- */
 const anularFactura = async (
   id_factura,
   {
