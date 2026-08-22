@@ -2,8 +2,7 @@ const facturasModel = require('../models/facturasModel');
 
 async function listar(req, res, next) {
   try {
-    const facturas = await facturasModel.obtenerTodas();
-    res.json(facturas);
+    res.json(await facturasModel.obtenerTodas());
   } catch (err) {
     next(err);
   }
@@ -11,37 +10,70 @@ async function listar(req, res, next) {
 
 async function obtenerPorId(req, res, next) {
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de factura inválido.' });
+    }
+
     const factura = await facturasModel.obtenerPorId(id);
     if (!factura) {
-      return res.status(404).json({ error: 'Factura no encontrada' });
+      return res.status(404).json({ error: 'Factura no encontrada.' });
     }
+
     res.json(factura);
   } catch (err) {
     next(err);
   }
 }
-const anularFactura = async (req, res) => {
+
+async function anularFactura(req, res, next) {
   try {
-    const { id } = req.params;
-    const { motivo } = req.body;
-    // Si tu middleware de auth adjunta el usuario al request:
-    const id_usuario = req.usuario ? req.usuario.id_usuario : null;
+    const id = Number(req.params.id);
+    const { motivo, tipo_reversion } = req.body || {};
 
-    const facturaAnulada = await facturasModel.anularFactura(id, { motivo, id_usuario });
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de factura inválido.' });
+    }
 
-    return res.status(200).json({
-      mensaje: 'Factura anulada correctamente',
-      factura: facturaAnulada,
+    if (!['dinero', 'nota_credito'].includes(tipo_reversion)) {
+      return res.status(400).json({
+        error: 'Debés indicar si la devolución es por dinero o nota de crédito.',
+      });
+    }
+
+    const id_usuario =
+      req.usuario?.id_usuario ??
+      req.usuario?.id ??
+      null;
+
+    const resultado = await facturasModel.anularFactura(id, {
+      motivo: motivo || null,
+      tipo_reversion,
+      id_usuario,
     });
-  } catch (error) {
-    return res.status(400).json({
-      error: error.message || 'Error al anular la factura',
+
+    res.json({
+      mensaje:
+        tipo_reversion === 'dinero'
+          ? 'Factura anulada y dinero devuelto correctamente.'
+          : 'Factura anulada y nota de crédito generada correctamente.',
+      ...resultado,
+    });
+  } catch (err) {
+    console.error('ERROR AL ANULAR FACTURA:', err);
+
+    if (err.status) {
+      return res.status(err.status).json({ error: err.message });
+    }
+
+    return res.status(409).json({
+      error: err.message || 'No se pudo anular la factura.',
     });
   }
-};
+}
+
 module.exports = {
   listar,
   obtenerPorId,
-  anularFactura
+  anularFactura,
 };

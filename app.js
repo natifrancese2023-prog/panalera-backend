@@ -50,6 +50,7 @@ app.use('/compras-sugeridas', require('./routes/comprasSugeridasRoutes'));
 app.use('/compras-sugeridas', require('./routes/comprasSugeridasRoutes'));
 app.use('/cuenta-corriente', require('./routes/cuentaCorrienteRoutes'));
 app.use('/caja', require('./routes/cajaRoutes'));
+app.use('/notas-credito', require('./routes/notaCredito'));
 
 // Error handler
 const errorHandler = require('./middlewares/errorHandler');
